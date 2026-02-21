@@ -1,113 +1,119 @@
-import type { 
-  CompressionOptions, 
-  ProcessedImage, 
+import type {
+  CompressionOptions,
+  ProcessedImage,
   ImageFormat,
-  ImageDimensions 
+  ImageDimensions,
 } from '@/types';
 
+// Mapa de formato → MIME type
+const FORMAT_MIME: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
 /**
- * Comprime una imagen reduciendo su calidad y/o dimensiones
+ * Dibuja la imagen en un canvas con las dimensiones calculadas y devuelve el canvas + ctx.
+ */
+function buildCanvas(
+  img: HTMLImageElement,
+  maxWidthOrHeight?: number
+): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number } {
+  let { width, height } = img;
+
+  if (maxWidthOrHeight && (width > maxWidthOrHeight || height > maxWidthOrHeight)) {
+    if (width > height) {
+      height = Math.round((height * maxWidthOrHeight) / width);
+      width = maxWidthOrHeight;
+    } else {
+      width = Math.round((width * maxWidthOrHeight) / height);
+      height = maxWidthOrHeight;
+    }
+  }
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  if (!ctx) throw new Error('No se pudo obtener el contexto del canvas');
+
+  ctx.drawImage(img, 0, 0, width, height);
+  return { canvas, ctx, width, height };
+}
+
+/**
+ * Convierte un canvas a Blob con el MIME y calidad dados.
+ */
+function canvasToBlob(
+  canvas: HTMLCanvasElement,
+  mime: string,
+  quality: number
+): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => (blob ? resolve(blob) : reject(new Error('Error al crear blob'))),
+      mime,
+      quality
+    );
+  });
+}
+
+/**
+ * Comprime una imagen reduciendo su calidad y/o dimensiones.
+ * En lugar de recursión que recarga la URL, itera sobre el canvas ya renderizado.
  */
 export async function compressImage(
   imageUrl: string,
   options: CompressionOptions
 ): Promise<ProcessedImage> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-
-    img.onload = async () => {
-      try {
-        let { width, height } = img;
-
-        // Redimensionar si se especifica maxWidthOrHeight
-        if (options.maxWidthOrHeight) {
-          const maxDimension = options.maxWidthOrHeight;
-          if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = Math.round((height * maxDimension) / width);
-              width = maxDimension;
-            } else {
-              width = Math.round((width * maxDimension) / height);
-              height = maxDimension;
-            }
-          }
-        }
-
-        // Crear canvas
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-
-        if (!ctx) {
-          reject(new Error('No se pudo obtener el contexto del canvas'));
-          return;
-        }
-
-        // Dibujar imagen
-        ctx.drawImage(img, 0, 0, width, height);
-
-        // Determinar calidad (0-1)
-        const quality = options.quality !== undefined ? options.quality : 0.8;
-
-        // Convertir a blob
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error('Error al crear blob'));
-              return;
-            }
-
-            // Verificar si cumple con el tamaño máximo
-            const sizeMB = blob.size / (1024 * 1024);
-            if (sizeMB > options.maxSizeMB) {
-              // Si aún es muy grande, intentar con menor calidad
-              const newQuality = Math.max(0.1, quality - 0.1);
-              const newOptions: CompressionOptions = {
-                ...options,
-                quality: newQuality,
-              };
-              
-              // Recursión con menor calidad
-              compressImage(imageUrl, newOptions)
-                .then(resolve)
-                .catch(reject);
-              return;
-            }
-
-            const url = URL.createObjectURL(blob);
-            const dimensions: ImageDimensions = { width, height };
-
-            const result: ProcessedImage = {
-              blob,
-              url,
-              fileName: 'imagen-comprimida.jpg',
-              format: 'jpg',
-              size: blob.size,
-              dimensions,
-            };
-
-            resolve(result);
-          },
-          'image/jpeg',
-          quality
-        );
-      } catch (error) {
-        reject(error);
-      }
-    };
-
-    img.onerror = () => {
-      reject(new Error('Error al cargar la imagen'));
-    };
-
-    img.src = imageUrl;
+  const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const el = new Image();
+    el.crossOrigin = 'anonymous';
+    el.onload = () => resolve(el);
+    el.onerror = () => reject(new Error('Error al cargar la imagen'));
+    el.src = imageUrl;
   });
+
+  const { canvas, width, height } = buildCanvas(img, options.maxWidthOrHeight);
+
+  // Formato de salida: respeta lo que venga en options, fallback a jpg
+  type CompressionOptionsWithFormat = CompressionOptions & { format?: string };
+  const outputFormat: string = (options as CompressionOptionsWithFormat).format ?? 'jpg';
+  const mime = FORMAT_MIME[outputFormat] ?? 'image/jpeg';
+  const fileExt = outputFormat === 'jpeg' ? 'jpg' : outputFormat;
+
+  let quality = options.quality !== undefined ? options.quality : 0.8;
+  let blob: Blob;
+
+  // Loop iterativo en lugar de recursión — más eficiente y predecible
+  while (true) {
+    blob = await canvasToBlob(canvas, mime, quality);
+    const sizeMB = blob.size / (1024 * 1024);
+
+    if (sizeMB <= options.maxSizeMB || quality <= 0.1) break;
+
+    quality = Math.max(0.1, Math.round((quality - 0.1) * 10) / 10);
+  }
+
+  const url = URL.createObjectURL(blob!);
+  const dimensions: ImageDimensions = { width, height };
+
+  const result: ProcessedImage = {
+    blob: blob!,
+    url,
+    fileName: `imagen-comprimida.${fileExt}`,
+    format: fileExt as ImageFormat,
+    size: blob!.size,
+    dimensions,
+  };
+
+  return result;
 }
 
 /**
- * Calcula el porcentaje de compresión logrado
+ * Calcula el porcentaje de compresión logrado.
  */
 export function calculateCompressionRatio(
   originalSize: number,
@@ -118,18 +124,20 @@ export function calculateCompressionRatio(
 }
 
 /**
- * Estima el tamaño final basado en la calidad seleccionada
+ * Estima el tamaño final basado en la calidad seleccionada.
+ * Usa una curva más realista para JPEG (no lineal).
  */
 export function estimateCompressedSize(
   originalSize: number,
   quality: number
 ): number {
-  // Estimación aproximada (no exacta)
-  return Math.round(originalSize * quality);
+  // JPEG comprime de forma logarítmica; esta curva es más fiel que quality * size
+  const factor = 0.1 + 0.9 * Math.pow(quality, 1.5);
+  return Math.round(originalSize * factor);
 }
 
 /**
- * Valida las opciones de compresión
+ * Valida las opciones de compresión.
  */
 export function validateCompressionOptions(
   options: CompressionOptions
@@ -137,23 +145,17 @@ export function validateCompressionOptions(
   if (options.maxSizeMB <= 0) {
     return 'El tamaño máximo debe ser mayor a 0';
   }
-
   if (options.quality !== undefined && (options.quality < 0 || options.quality > 1)) {
     return 'La calidad debe estar entre 0 y 1';
   }
-
-  if (
-    options.maxWidthOrHeight !== undefined &&
-    options.maxWidthOrHeight < 1
-  ) {
+  if (options.maxWidthOrHeight !== undefined && options.maxWidthOrHeight < 1) {
     return 'Las dimensiones máximas deben ser mayores a 0';
   }
-
   return null;
 }
 
 /**
- * Obtiene recomendaciones de compresión basadas en el tamaño original
+ * Obtiene recomendaciones de compresión basadas en el tamaño original.
  */
 export function getCompressionRecommendations(
   originalSizeMB: number
@@ -187,3 +189,4 @@ export function getCompressionRecommendations(
 
   return recommendations;
 }
+

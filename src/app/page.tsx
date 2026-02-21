@@ -146,7 +146,7 @@ export default function Home() {
   <div className="container-custom">
     <article className="max-w-4xl mx-auto">
       <h2 className="text-3xl font-bold text-gray-900 mb-6">
-        Herramientas Online Gratis para Editar Imágenes y Fotos en 2024
+        Herramientas Online Gratis para Editar Imágenes y Fotos en 2026
       </h2>
       
       <div className="prose max-w-none space-y-6">

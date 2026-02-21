@@ -119,6 +119,11 @@ export default function Footer() {
             <h3 className="font-semibold text-gray-900 mb-4">Información</h3>
             <ul className="space-y-3">
               <li>
+                <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+                  Blog
+                </Link>
+              </li>
+              <li>
                 <Link href="/acerca-de" className="text-sm text-gray-600 hover:text-gray-900 transition-colors">
                   Acerca de
                 </Link>
@@ -179,14 +184,14 @@ export function SimpleFooter() {
             <Link href="/" className="hover:text-gray-900 transition-colors">
               Inicio
             </Link>
+            <Link href="/blog" className="hover:text-gray-900 transition-colors">
+              Blog
+            </Link>
             <Link href="/politicas" className="hover:text-gray-900 transition-colors">
               Políticas
             </Link>
             <Link href="/contacto" className="hover:text-gray-900 transition-colors">
               Contacto
-            </Link>
-            <Link href="/cookies" className="hover:text-gray-900 transition-colors">
-              Cookies
             </Link>
           </div>
         </div>

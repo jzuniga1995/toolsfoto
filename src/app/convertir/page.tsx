@@ -688,7 +688,7 @@ export default function ConvertirPage() {
     <ul className="list-disc list-inside text-gray-600 space-y-2 mb-6">
       <li><strong>Perder transparencia involuntariamente:</strong> Al convertir PNG a JPG sin considerar el fondo. Nuestra herramienta te advierte y permite elegir color.</li>
       <li><strong>Usar PNG para fotos web:</strong> PNG de fotografías es 3-5x más pesado que JPG/WebP equivalente. Ralentiza tu sitio innecesariamente.</li>
-      <li><strong>No usar WebP en 2024:</strong> WebP tiene soporte universal moderno. Seguir usando solo JPG/PNG desperdicia ancho de banda.</li>
+      <li><strong>No usar WebP en 2026:</strong> WebP tiene soporte universal moderno. Seguir usando solo JPG/PNG desperdicia ancho de banda.</li>
       <li><strong>Convertir múltiples veces:</strong> Cada conversión con pérdida (JPG, WebP) degrada calidad. Convierte siempre desde original de alta calidad.</li>
       <li><strong>Ignorar el uso final:</strong> Formato perfecto depende de dónde se usará. Web, impresión, edición tienen necesidades diferentes.</li>
     </ul>
@@ -748,7 +748,7 @@ export default function ConvertirPage() {
     </p>
     <ul className="list-disc list-inside text-gray-600 space-y-2 mb-6">
       <li><strong>WebP establecido:</strong> Ya no es experimental, es el estándar moderno de facto</li>
-      <li><strong>AVIF emergente:</strong> Compresión aún mejor que WebP, pero soporte limitado en 2024</li>
+      <li><strong>AVIF emergente:</strong> Compresión aún mejor que WebP, pero soporte limitado en 2026</li>
       <li><strong>JPEG XL prometedor:</strong> Sucesor de JPG con características modernas, adopción lenta</li>
       <li><strong>PNG y JPG permanecen:</strong> Demasiado establecidos para desaparecer, seguirán como fallbacks</li>
       <li><strong>GIF persistente:</strong> A pesar de limitaciones técnicas, domina animaciones en redes sociales</li>
@@ -758,7 +758,7 @@ export default function ConvertirPage() {
       Recomendaciones finales:
     </h3>
     <ul className="list-disc list-inside text-gray-600 space-y-2 mb-6">
-      <li><strong>Para la mayoría:</strong> WebP es la mejor opción en 2024 para balance perfecto compresión/calidad/compatibilidad</li>
+      <li><strong>Para la mayoría:</strong> WebP es la mejor opción en 2026 para balance perfecto compresión/calidad/compatibilidad</li>
       <li><strong>Para fotografías legado:</strong> JPG calidad 85-90% sigue siendo excelente y universal</li>
       <li><strong>Para transparencia:</strong> PNG cuando compatibilidad máxima importa, WebP cuando optimización es crítica</li>
       <li><strong>Para animaciones:</strong> GIF para compatibilidad, WebP animado para mejor calidad/tamaño</li>

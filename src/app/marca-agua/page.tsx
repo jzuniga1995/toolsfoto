@@ -26,7 +26,7 @@ export default function MarcaAguaPage() {
   const [watermarkType, setWatermarkType] = useState<'text' | 'image'>('text');
 
   // Opciones de marca de agua de texto
-  const [text, setText] = useState('© 2024 Mi Marca');
+  const [text, setText] = useState('© 2026 Mi Marca');
   const [fontSize, setFontSize] = useState(24);
   const [fontColor, setFontColor] = useState('#FFFFFF');
   const [fontFamily, setFontFamily] = useState('Arial');
@@ -281,7 +281,7 @@ export default function MarcaAguaPage() {
                             type="text"
                             value={text}
                             onChange={(e) => setText(e.target.value)}
-                            placeholder="© 2024 Mi Marca"
+                            placeholder="© 2026 Mi Marca"
                             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             aria-label="Texto de la marca de agua"
                           />
@@ -718,7 +718,7 @@ export default function MarcaAguaPage() {
       Tipos de texto común para marcas de agua:
     </h3>
     <ul className="list-disc list-inside text-gray-600 space-y-2 mb-6">
-      <li><strong>Copyright:</strong> © 2024 Tu Nombre / Tu Empresa</li>
+      <li><strong>Copyright:</strong> © 2026 Tu Nombre / Tu Empresa</li>
       <li><strong>URL del sitio web:</strong> www.tusitio.com</li>
       <li><strong>Nombre de usuario:</strong> @tunombreusuario (para redes sociales)</li>
       <li><strong>Marca personal:</strong> Fotografía por [Tu Nombre]</li>
