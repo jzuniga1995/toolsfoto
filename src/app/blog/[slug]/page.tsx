@@ -8,6 +8,13 @@ import Image from 'next/image';
 import { Metadata } from 'next';
 import { ImageIcon, Scissors, Palette, Clock, Calendar, ArrowRight, Sparkles } from 'lucide-react';
 import ShareButtons from '@/app/components/blog/ShareButtons';
+import { marked } from 'marked';
+
+// Configurar marked
+marked.setOptions({
+  breaks: true,
+  gfm: true,
+});
 
 interface PostPageProps {
   params: Promise<{ slug: string }>;
@@ -89,6 +96,9 @@ export default async function BlogPostPage({ params }: PostPageProps) {
   // Calcular tiempo de lectura
   const wordCount = postData.content.split(/\s+/).length;
   const readingTime = Math.ceil(wordCount / 200);
+
+  // Convertir Markdown a HTML
+  const contentHtml = marked(postData.content) as string;
 
   // Schema markup para el artículo
   const articleSchema = {
@@ -247,7 +257,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
               )}
             </header>
 
-            {/* Content */}
+            {/* Content — Markdown convertido a HTML */}
             <div className="bg-white rounded-xl sm:rounded-2xl shadow-xl p-4 sm:p-6 md:p-8 lg:p-12 border mb-8 sm:mb-12">
               <div 
                 className="prose prose-sm sm:prose-base md:prose-lg max-w-none
@@ -269,7 +279,7 @@ export default async function BlogPostPage({ params }: PostPageProps) {
                   prose-th:border prose-th:border-gray-300 prose-th:px-4 prose-th:py-3 prose-th:text-left prose-th:font-semibold prose-th:text-gray-900
                   prose-td:border prose-td:border-gray-300 prose-td:px-4 prose-td:py-3 prose-td:text-gray-700
                   prose-tr:border-b prose-tr:border-gray-200"
-                dangerouslySetInnerHTML={{ __html: postData.content }}
+                dangerouslySetInnerHTML={{ __html: contentHtml }}
               />
             </div>
 
@@ -438,3 +448,4 @@ export default async function BlogPostPage({ params }: PostPageProps) {
     </>
   );
 }
+
